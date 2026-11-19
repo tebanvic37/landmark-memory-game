@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architectural Wonders — Memory Expedition</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cinzel, Playfair Display & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tone.js for procedural sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg-parchment: #F6F1E7;
+            --bg-card-cream: #FFFDF9;
+            --ink-navy: #1B263B;
+            --gold-brass: #C59B27;
+            --gold-light: #E8D59E;
+            --terracotta: #B85D3B;
+            --sage-slate: #4A6B69;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-parchment);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(197, 155, 39, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(27, 38, 59, 0.07) 0%, transparent 45%),
+                linear-gradient(rgba(27, 38, 59, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(27, 38, 59, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
+            color: var(--ink-navy);
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .font-display {
+            font-family: 'Cinzel', serif;
+        }
+
+        .font-serif-title {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* 3D Card Flip Mechanics */
+        .perspective-container {
+            perspective: 1100px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .card-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 6px 18px -4px rgba(27, 38, 59, 0.14), 0 2px 6px -1px rgba(27, 38, 59, 0.08);
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card-inner:hover:not(.is-flipped):not(.is-matched) .card-face.card-back {
+            box-shadow: 0 12px 24px -6px rgba(27, 38, 59, 0.25), 0 0 0 2px rgba(197, 155, 39, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* Card Back: Architectural Blueprint & Brass Motif */
+        .card-back {
+            background: linear-gradient(145deg, #1B263B 0%, #263654 100%);
+            border: 2px solid #C59B27;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-back-pattern {
+            position: absolute;
+            inset: 6px;
+            border: 1px solid rgba(197, 155, 39, 0.45);
+            border-radius: 0.7rem;
+            background-image: radial-gradient(rgba(197, 155, 39, 0.18) 1px, transparent 1px);
+            background-size: 10px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Card Front */
+        .card-front {
+            background: var(--bg-card-cream);
+            transform: rotateY(180deg);
+            border: 2px solid #DFD3BC;
+        }
+
+        .card-inner.is-matched .card-front {
+            border-color: #2E7D5B;
+            background: linear-gradient(180deg, #FFFDF9 0%, #F0F9F4 100%);
+            box-shadow: 0 0 0 2px rgba(46, 125, 91, 0.3), 0 8px 20px rgba(46, 125, 91, 0.15);
+        }
+
+        @keyframes matchPulse {
+            0% { transform: rotateY(180deg) scale(1); }
+            45% { transform: rotateY(180deg) scale(1.06); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
+        .card-inner.match-animate {
+            animation: matchPulse 0.55s ease-out forwards;
+        }
+
+        @keyframes shakeMismatch {
+            0%, 100% { transform: rotateY(180deg) translateX(0); }
+            25% { transform: rotateY(180deg) translateX(-5px); }
+            75% { transform: rotateY(180deg) translateX(5px); }
+        }
+
+        .card-inner.mismatch-animate {
+            animation: shakeMismatch 0.35s ease-in-out;
+        }
+
+        /* Custom Museum Button Styling */
+        .btn-museum {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 3px 0 #111827;
+        }
+        .btn-museum:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #111827;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #D4AF37 0%, #B5891C 100%);
+            color: #1B263B;
+            box-shadow: 0 3px 0 #7C5C0E;
+        }
+        .btn-gold:hover {
+            filter: brightness(1.05);
+        }
+        .btn-gold:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #7C5C0E;
+        }
+
+        /* Trivia Slide Banner */
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .trivia-enter {
+            animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Confetti particles */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -12px;
+            z-index: 100;
+            pointer-events: none;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-between">
+
+    <!-- Top Header & Museum Control Bar -->
+    <header class="w-full bg-[#1B263B] text-[#F6F1E7] border-b-4 border-[#C59B27] shadow-lg sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+            <!-- Brand / Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#263654] border-2 border-[#C59B27] flex items-center justify-center shadow-inner shrink-0">
+                    <!-- Compass / Arch Emblem -->
+                    <svg class="w-6 h-6 text-[#E8D59E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M3 21h18M4 18h16M6 18V9m4 9V9m4 9V9m4 9V9M2 9l10-6 10 6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-display text-base sm:text-xl font-bold tracking-wider text-[#F6F1E7] leading-tight">
+                        ARCHITECTURAL WONDERS
+                    </h1>
+                    <p class="text-[11px] sm:text-xs text-[#E8D59E] tracking-widest uppercase font-medium">
+                        World Landmark Memory Expedition
+                    </p>
+                </div>
+            </div>
+
+            <!-- Difficulty Selector Pills -->
+            <div class="flex items-center bg-[#121A29] p-1 rounded-xl border border-[#C59B27]/40 order-3 sm:order-2 w-full sm:w-auto justify-center">
+                <button onclick="setDifficulty('easy')" id="diff-easy" class="diff-btn flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all">
+                    Easy <span class="opacity-75 text-[11px]">(6 Pairs)</span>
+                </button>
+                <button onclick="setDifficulty('medium')" id="diff-medium" class="diff-btn flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all">
+                    Medium <span class="opacity-75 text-[11px]">(8 Pairs)</span>
+                </button>
+                <button onclick="setDifficulty('hard')" id="diff-hard" class="diff-btn flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all">
+                    Hard <span class="opacity-75 text-[11px]">(12 Pairs)</span>
+                </button>
+            </div>
+
+            <!-- Action Controls: Sound & Restart -->
+            <div class="flex items-center gap-2 order-2 sm:order-3">
+                <button id="mute-btn" onclick="toggleMute()" title="Toggle Sound Effects" class="p-2.5 rounded-xl bg-[#263654] hover:bg-[#31456B] border border-[#C59B27]/50 text-[#E8D59E] transition-colors">
+                    <i data-lucide="volume-2" id="sound-icon" class="w-5 h-5"></i>
+                </button>
+                <button onclick="initGame()" title="Start New Expedition" class="btn-gold px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    <span>New Game</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4">
+
+        <!-- Telemetry & Stats Dashboard -->
+        <section class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+            <!-- Pairs Found -->
+            <div class="bg-[#FFFDF9] border-2 border-[#DFD3BC] rounded-2xl px-3.5 py-2.5 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-[11px] uppercase tracking-wider font-bold text-[#6B5E4C] block">Discovered</span>
+                    <span id="stat-pairs" class="font-display text-lg sm:text-2xl font-bold text-[#1B263B]">0 / 6</span>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-[#F6F1E7] border border-[#DFD3BC] flex items-center justify-center text-[#B85D3B]">
+                    <i data-lucide="landmark" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <!-- Moves Counter -->
+            <div class="bg-[#FFFDF9] border-2 border-[#DFD3BC] rounded-2xl px-3.5 py-2.5 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-[11px] uppercase tracking-wider font-bold text-[#6B5E4C] block">Moves</span>
+                    <span id="stat-moves" class="font-display text-lg sm:text-2xl font-bold text-[#1B263B]">0</span>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-[#F6F1E7] border border-[#DFD3BC] flex items-center justify-center text-[#1B263B]">
+                    <i data-lucide="footprints" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <!-- Elapsed Timer -->
+            <div class="bg-[#FFFDF9] border-2 border-[#DFD3BC] rounded-2xl px-3.5 py-2.5 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-[11px] uppercase tracking-wider font-bold text-[#6B5E4C] block">Time</span>
+                    <span id="stat-timer" class="font-display text-lg sm:text-2xl font-bold text-[#1B263B]">00:00</span>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-[#F6F1E7] border border-[#DFD3BC] flex items-center justify-center text-[#4A6B69]">
+                    <i data-lucide="hourglass" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <!-- Best Record -->
+            <div class="bg-[#FFFDF9] border-2 border-[#DFD3BC] rounded-2xl px-3.5 py-2.5 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-[11px] uppercase tracking-wider font-bold text-[#6B5E4C] block">Best Record</span>
+                    <span id="stat-best" class="font-display text-sm sm:text-lg font-bold text-[#9A7414]">—</span>
+                </div>
+                <div class="w-9 h-9 rounded-xl bg-[#FDF7E7] border border-[#E8D59E] flex items-center justify-center text-[#C59B27]">
+                    <i data-lucide="award" class="w-5 h-5"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architectural Curator Trivia Banner -->
+        <section id="trivia-panel" class="bg-[#FFFDF9] border-2 border-[#C59B27]/70 rounded-2xl p-3.5 sm:px-5 sm:py-3.5 shadow-sm flex items-start sm:items-center gap-3.5 transition-all">
+            <div id="trivia-badge" class="w-10 h-10 rounded-xl bg-[#1B263B] text-[#E8D59E] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 border border-[#C59B27]">
+                <i data-lucide="compass" class="w-5 h-5"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span id="trivia-tag" class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-[#E8D59E]/40 text-[#7C5C0E]">
+                        Curator's Field Guide
+                    </span>
+                    <h2 id="trivia-title" class="font-serif-title font-bold text-sm sm:text-base text-[#1B263B]">
+                        Match each landmark illustration with its architectural title card
+                    </h2>
+                </div>
+                <p id="trivia-text" class="text-xs sm:text-sm text-[#4B4237] mt-0.5 leading-relaxed">
+                    Flip any two cards to begin. Every successful match unlocks fascinating architectural and historical trivia!
+                </p>
+            </div>
+        </section>
+
+        <!-- Memory Card Grid Arena -->
+        <section class="flex-1 flex items-center justify-center py-1">
+            <div id="card-grid" class="w-full grid gap-2.5 sm:gap-3.5 md:gap-4 transition-all">
+                <!-- Cards injected dynamically -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-3 px-4 text-xs text-[#6B5E4C] border-t border-[#DFD3BC]/70 bg-[#F6F1E7]/80">
+        Match custom vector architecture illustrations with their official names &amp; world locations.
+    </footer>
+
+    <!-- Victory Celebration Modal -->
+    <div id="victory-modal" class="fixed inset-0 z-50 bg-[#1B263B]/75 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-[#FFFDF9] border-4 border-[#C59B27] rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative overflow-hidden text-center">
+            <!-- Decorative Top Corner Filigree -->
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#1B263B] to-[#2C3E5E] border-2 border-[#C59B27] flex items-center justify-center shadow-lg">
+                <i data-lucide="trophy" class="w-8 h-8 text-[#E8D59E]"></i>
+            </div>
+
+            <span id="victory-new-record" class="hidden inline-block mb-2 px-3 py-1 rounded-full bg-[#FEF3C7] border border-[#F59E0B] text-[#92400E] text-xs font-bold uppercase tracking-wider">
+                ★ New Personal Record! ★
+            </span>
+
+            <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-[#1B263B] tracking-wide">
+                EXPEDITION COMPLETE
+            </h2>
+            <p id="victory-subtitle" class="text-sm text-[#5C5142] mt-1 mb-5">
+                You successfully cataloged all architectural wonders!
+            </p>
+
+            <!-- Summary Metrics -->
+            <div class="grid grid-cols-3 gap-2.5 mb-6">
+                <div class="bg-[#F6F1E7] border border-[#DFD3BC] rounded-2xl p-3">
+                    <span class="text-[11px] uppercase font-bold text-[#6B5E4C] block">Moves</span>
+                    <span id="vic-moves" class="font-display text-xl font-bold text-[#1B263B]">14</span>
+                </div>
+                <div class="bg-[#F6F1E7] border border-[#DFD3BC] rounded-2xl p-3">
+                    <span class="text-[11px] uppercase font-bold text-[#6B5E4C] block">Time</span>
+                    <span id="vic-time" class="font-display text-xl font-bold text-[#1B263B]">00:42</span>
+                </div>
+                <div class="bg-[#F6F1E7] border border-[#DFD3BC] rounded-2xl p-3">
+                    <span class="text-[11px] uppercase font-bold text-[#6B5E4C] block">Rating</span>
+                    <span id="vic-stars" class="text-lg font-bold text-[#C59B27]">★★★</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="closeModalAndRestart()" class="btn-gold flex-1 py-3 px-5 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    <span>Play Again</span>
+                </button>
+                <button onclick="advanceDifficulty()" id="next-diff-btn" class="btn-museum flex-1 py-3 px-5 rounded-xl bg-[#1B263B] text-[#F6F1E7] font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#273754]">
+                    <span>Next Difficulty</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // 1. LANDMARK DATABASE & BESPOKE VECTOR SVG ILLUSTRATIONS
+        // =========================================================================
+        const LANDMARKS = [
+            {
+                id: 'eiffel',
+                name: 'Eiffel Tower',
+                location: 'Paris, France',
+                era: '1889 • Iron Lattice',
+                fact: 'Constructed for the 1889 World’s Fair, the Eiffel Tower grows up to 15 cm (6 inches) taller in summer due to thermal expansion of its puddle iron.',
+                svg: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="skyEiffel" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#DBEAFE"/><stop offset="100%" stop-color="#FEF3C7"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="120" height="120" rx="12" fill="url(#skyEiffel)"/>
+                    <circle cx="92" cy="28" r="10" fill="#FDE68A" opacity="0.8"/>
+                    <!-- Tower Base & Legs -->
+                    <path d="M32 104 L46 66 L74 66 L88 104 L76 104 C72 88 48 88 44 104 Z" fill="#785A46" stroke="#3E2B1E" stroke-width="2"/>
+                    <!-- Lattice Crossings Lower -->
+                    <path d="M40 86 L80 86 M44 75 L76 75 M46 66 L60 80 L74 66" stroke="#3E2B1E" stroke-width="1.5" fill="none"/>
+                    <!-- Second Deck -->
+                    <rect x="42" y="62" width="36" height="5" rx="1.5" fill="#5C4030" stroke="#3E2B1E" stroke-width="1.5"/>
+                    <!-- Mid Section -->
+                    <path d="M47 62 L54 34 L66 34 L73 62 Z" fill="#8C6A52" stroke="#3E2B1E" stroke-width="2"/>
+                    <path d="M49 52 L71 52 M52 43 L68 43 M50 58 L69 45 M70 58 L51 45" stroke="#3E2B1E" stroke-width="1.3"/>
+                    <!-- Top Deck & Spire -->
+                    <rect x="51" y="31" width="18" height="4" rx="1" fill="#5C4030" stroke="#3E2B1E" stroke-width="1.4"/>
+                    <path d="M55 31 L58 14 L62 14 L65 31 Z" fill="#785A46" stroke="#3E2B1E" stroke-width="1.5"/>
+                    <line x1="60" y1="6" x2="60" y2="14" stroke="#3E2B1E" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Ground Park -->
+                    <rect x="0" y="103" width="120" height="17" fill="#65A30D"/>
+                    <path d="M16 103 Q22 92 28 103 M92 103 Q98 90 105 103" fill="#3F6212"/>
+                </svg>`
+            },
+            {
+                id: 'taj',
+                name: 'Taj Mahal',
+                location: 'Agra, India',
+                era: '1653 • Mughal Marble',
+                fact: 'Built by Emperor Shah Jahan in ivory-white marble, its four minarets tilt slightly outward so they would fall away from the main tomb in an earthquake.',
+                svg: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="skyTaj" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#FCE7F3"/><stop offset="100%" stop-color="#FFEDD5"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="120" height="120" rx="12" fill="url(#skyTaj)"/>
+                    <!-- Minarets -->
+                    <rect x="17" y="46" width="5" height="46" fill="#FFFBEB" stroke="#9CA3AF" stroke-width="1.3"/>
+                    <path d="M16 46 Q19.5 39 23 46 Z" fill="#FDE68A" stroke="#9CA3AF" stroke-width="1.2"/>
+                    <rect x="98" y="46" width="5" height="46" fill="#FFFBEB" stroke="#9CA3AF" stroke-width="1.3"/>
+                    <path d="M97 46 Q100.5 39 104 46 Z" fill="#FDE68A" stroke="#9CA3AF" stroke-width="1.2"/>
+                    <!-- Main Onion Dome -->
+                    <path d="M44 54 C40 36 53 26 60 18 C67 26 80 36 76 54 Z" fill="#FFFFFF" stroke="#9CA3AF" stroke-width="1.6"/>
+                    <line x1="60" y1="11" x2="60" y2="18" stroke="#D97706" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Side Chhatris -->
+                    <path d="M34 56 C33 48 39 44 42 41 C45 44 51 48 50 56 Z" fill="#FFFBEB" stroke="#9CA3AF" stroke-width="1.3"/>
+                    <path d="M70 56 C69 48 75 44 78 41 C81 44 87 48 86 56 Z" fill="#FFFBEB" stroke="#9CA3AF" stroke-width="1.3"/>
+                    <!-- Main Facade -->
+                    <rect x="28" y="54" width="64" height="38" fill="#FFFFFF" stroke="#9CA3AF" stroke-width="1.6"/>
+                    <!-- Central Iwan Arch -->
+                    <path d="M49 92 L49 67 Q60 57 71 67 L71 92 Z" fill="#E5E7EB" stroke="#9CA3AF" stroke-width="1.4"/>
+                    <path d="M53 92 L53 71 Q60 63 67 71 L67 92 Z" fill="#4B5563"/>
+                    <!-- Side Niches -->
+                    <path d="M34 72 Q38 66 42 72 L42 86 L34 86 Z" fill="#9CA3AF"/>
+                    <path d="M78 72 Q82 66 86 72 L86 86 L78 86 Z" fill="#9CA3AF"/>
+                    <!-- Plinth & Reflecting Pool -->
+                    <rect x="12" y="92" width="96" height="6" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="1.2"/>
+                    <rect x="0" y="98" width="120" height="22" fill="#86EFAC"/>
+                    <polygon points="48,98 72,98 80,120 40,120" fill="#38BDF8"/>
+                </svg>`
+            },
+            {
+                id: 'colosseum',
+                name: 'The Colosseum',
+                location: 'Rome, Italy',
+                era: '80 AD • Roman Amphitheatre',
+                fact: 'The largest ancient amphitheatre ever built could hold up to 80,000 spectators and featured a retractable canvas awning called the velarium.',
+                svg: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                    <rect width="120" height="120" rx="12" fill="#E0F2FE"/>
+                    <circle cx="25" cy="24" r="9" fill="#FDE047"/>
+                    <!-- Main Travertine Structure (stepped ruin profile) -->
+                    <path d="M14 96 L14 40 L68 40 L68 54 L92 54 L92 68 L106 68 L106 96 Z" fill="#E7C697" stroke="#855832" stroke-width="2" stroke-linejoin="round"/>
+                    <!-- Horizontal Cornices -->
+                    <line x1="14" y1="54" x2="68" y2="54" stroke="#855832" stroke-width="2"/>
+                    <line x1="14" y1="68" x2="92" y2="68" stroke="#855832" stroke-width="2"/>
+                    <line x1="14" y1="82" x2="106" y2="82" stroke="#855832" stroke-width="2"/>
+                    <!-- Tier 1 Arches -->
+                    <path d="M22 54 V46 A4 4 0 0 1 30 46 V54 M37 54 V46 A4 4 0 0 1 45 46 V54 M52 54 V46 A4 4 0 0 1 60 46 V54" fill="#5C3A21"/>
+                    <!-- Tier 2 Arches -->
+                    <path d="M22 68 V60 A4 4 0 0 1 30 60 V68 M37 68 V60 A4 4 0 0 1 45 60 V68 M52 68 V60 A4 4 0 0 1 60 60 V68 M67 68 V60 A4 4 0 0 1 75 60 V68 M81 68 V60 A4 4 0 0 1 88 60 V68" fill="#5C3A21"/>
+                    <!-- Tier 3 Arches -->
+                    <path d="M22 82 V74 A4 4 0 0 1 30 74 V82 M37 82 V74 A4 4 0 0 1 45 74 V82 M52 82 V74 A4 4 0 0 1 60 74 V82 M67 82 V74 A4 4 0 0 1 75 74 V82 M81 82 V74 A4 4 0 0 1 88 74 V82 M95 82 V74 A3.5 3.5 0 0 1 102 74 V82" fill="#5C3A21"/>
+                    <!-- Ground Arches -->
+                    <path d="M22 96 V88 A4 4 0 0 1 30 88 V96 M37 96 V88 A4 4 0 0 1 45 88 V96 M52 96 V88 A4 4 0 0 1 60 88 V96 M67 96 V88 A4 4 0 0 1 75 88 V96 M81 96 V88 A4 4 0 0 1 88 88 V96 M95 96 V88 A3.5 3.5 0 0 1 102 88 V96" fill="#3E2716"/>
+                    <!-- Roman Pine & Ground -->
+                    <rect x="0" y="96" width="120" height="24" fill="#65A30D"/>
+                    <rect x="9" y="84" width="3" height="12" fill="#5C3A21"/>
+                    <ellipse cx="10.5" cy="82" rx="8" ry="4" fill="#15803D"/>
+                </svg>`
+            },
+            {
+                id: 'greatwall',
+                name: 'Great Wall of China',
+                location: 'Northern China',
+                era: '7th Century BC • Fortification',
+                fact: 'Stretching over 21,000 kilometers across rugged mountain ridges, sticky rice flour was mixed into the mortar to bind the bricks together.',
+                svg: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="skyWall" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#BAE6FD"/><stop offset="100%" stop-color="#FEF9C3"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="120" height="120" rx="12" fill="url(#skyWall)"/>
+                    <!-- Distant Mountain Peaks -->
+                    <polygon points="0,85 35,34 72,85" fill="#64748B"/>
+                    <polygon points="48,88 88,28 120,78 120,90" fill="#475569"/>
+                    <!-- Green Foothills -->
+                    <path d="M0 78 Q40 58 80 76 T120 68 L120 120 L0 120 Z" fill="#4D7C0F"/>
+                    <path d="M0 92 Q55 72 120 88 L120 120 L0 120 Z" fill="#3F6212"/>
+                    <!-- Winding Stone Wall -->
+                    <path d="M12 108 C22 86, 52 84, 58 66 C62 54, 78 48, 86 42 L92 46 C84 54, 70 60, 66 72 C58 92, 34 94, 26 112 Z" fill="#D6D3D1" stroke="#57534E" stroke-width="1.8"/>
+                    <!-- Watchtower Foreground -->
+                    <rect x="44" y="54" width="22" height="22" rx="1" fill="#E7E5E4" stroke="#44403C" stroke-width="1.8"/>
+                    <!-- Battlements -->
+                    <path d="M44 54 V50 H48 V54 H53 V50 H57 V54 H62 V50 H66 V54" fill="#E7E5E4" stroke="#44403C" stroke-width="1.5"/>
+                    <rect x="52" y="61" width="6" height="8" rx="3" fill="#292524"/>
+                    <!-- Distant Watchtower -->
+                    <rect x="81" y="34" width="12" height="12" fill="#E7E5E4" stroke="#44403C" stroke-width="1.4"/>
+                </svg>`
+            },
+            {
+                id: 'machupicchu',
+                name: 'Machu Picchu',
+                location: 'Cusco Region, Peru',
+                era: 'c. 1450 • Inca Citadel',
+                fact: 'Engineered using dry-stone ashlar masonry without mortar, the stones are cut so tightly that not even a knife blade can fit between them.',
+                svg: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                    <rect width="120" height="120" rx="12" fill="#E0F2FE"/>
+                    <!-- Mist Clouds -->
+                    <ellipse cx="28" cy="34" rx="18" ry="6" fill="#FFFFFF" opacity="0.85"/>
+                    <ellipse cx="94" cy="24" rx="16" ry="5" fill="#FFFFFF" opacity="0.85"/>
+                    <!-- Huayna Picchu Peak -->
+                    <path d="M62 84 L82 26 Q86 20 90 26 L112 84 Z" fill="#15803D" stroke="#14532D" stroke-width="1.8"/>
+                    <path d="M82 26 L86 44 L76 52 Z" fill="#166534"/>
+                    <!-- Terraced Mountain Slope -->
+                    <path d="M0 64 L48 56 L120 82 L120 120 L0 120 Z" fill="#65A30D"/>
+                    <!-- Agricultural Stone Terraces -->
+                    <path d="M6 76 L58 70 M10 86 L68 80 M14 96 L78 90 M18 106 L88 100" stroke="#A8A29E" stroke-width="3.5" stroke-linecap="round"/>
+                    <!-- Inca Stone Temples -->
+                    <polygon points="24,68 34,56 44,68" fill="#D6D3D1" stroke="#57534E" stroke-width="1.5"/>
+                    <rect x="26" y="68" width="16" height="10" fill="#E7E5E4" stroke="#57534E" stroke-width="1.5"/>
+                    <polygon points="48,73 57,62 66,73" fill="#D6D3D1" stroke="#57534E" stroke-width="1.5"/>
+                    <rect x="50" y="73" width="14" height="9" fill="#E7E5E4" stroke="#57534E" stroke-width="1.5"/>
+                </svg>`
+            },
+            {
+                id: 'sydney',
+                name: 'Sydney Opera House',
+                location: 'Sydney, Australia',
+                era: '1973 • Expressionist Modern',
+                fact: 'Designed by Danish architect Jørn Utzon, its iconic sail-like shells are clad in over one million self-cleaning glossy white and matte cream tiles.',
+                svg: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="skySyd" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#38BDF8"/><stop offset="100%" stop-color="#E0F2FE"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="120" height="120" rx="12" fill="url(#skySyd)"/>
+                    <!-- Podium Base -->
+                    <polygon points="10,88 110,88 104,76 16,76" fill="#D6B896" stroke="#785A46" stroke-width="1.6"/>
+                    <!-- Iconic Sail Shells -->
+                    <path d="M18 76 Q22 48 44 38 Q42 62 46 76 Z" fill="#FFFFFF" stroke="#64748B" stroke-width="1.6"/>
+                    <path d="M36 76 Q42 36 72 24 Q66 56 72 76 Z" fill="#F8FAFC" stroke="#64748B" stroke-width="1.8"/>
+                    <path d="M62 76 Q68 46 92 38 Q86 62 90 76 Z" fill="#FFFFFF" stroke="#64748B" stroke-width="1.6"/>
+                    <path d="M84 76 Q90 56 105 52 Q100 68 102 76 Z" fill="#F1F5F9" stroke="#64748B" stroke-width="1.5"/>
+                    <!-- Glass Curtain Ribs -->
+                    <path d="M44 38 L38 76 M72 24 L62 76 M92 38 L83 76" stroke="#94A3B8" stroke-width="1.2"/>
+                    <!-- Sydney Harbour Water -->
+                    <rect x="0" y="88" width="120" height="32" fill="#0284C7"/>
+                    <path d="M14 96 H46 M62 102 H102 M26 110 H74" stroke="#7DD3FC" stroke-width="2" stroke-linecap="round"/>
+                </svg>`
+            },
+            {
+                id: 'parthenon',
+                name: 'The Parthenon',
+                location: 'Athens, Greece',
+                era: '432 BC • Classical Doric',
+                fact: 'Built with subtle optical refinements—including slightly curved steps and inward-leaning columns—so the temple appears perfectly straight to the human eye.',
+                svg: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                    <rect width="120" height="120" rx="12" fill="#DBEAFE"/>
+                    <!-- Acropolis Hilltop -->
+                    <path d="M0 94 Q60 86 120 94 L120 120 L0 120 Z" fill="#A8A29E"/>
+                    <!-- Stylobate Steps -->
+                    <rect x="14" y="86" width="92" height="5" fill="#F5F5F4" stroke="#78716C" stroke-width="1.4"/>
+                    <rect x="18" y="81" width="84" height="5" fill="#FAFAF9" stroke="#78716C" stroke-width="1.4"/>
+                    <!-- Doric Columns -->
+                    <g fill="#FFFBEB" stroke="#78716C" stroke-width="1.4">
+                        <rect x="22" y="48" width="6" height="33"/>
+                        <rect x="33" y="48" width="6" height="33"/>
+                        <rect x="44" y="48" width="6" height="33"/>
+                        <rect x="55" y="48" width="6" height="33"/>
+                        <rect x="66" y="48" width="6" height="33"/>
+                        <rect x="77" y="48" width="6" height="33"/>
+                        <rect x="88" y="48" width="6" height="33"/>
+                    </g>
+                    <!-- Entablature & Pediment -->
+                    <rect x="18" y="41" width="84" height="7" fill="#F5F5F4" stroke="#78716C" stroke-width="1.5"/>
+                    <polygon points="15,41 60,22 105,41" fill="#FEF3C7" stroke="#78716C" stroke-width="1.8" stroke-linejoin="round"/>
+                    <polygon points="26,38 60,26 94,38" fill="#E7E5E4" stroke="#A8A29E" stroke-width="1"/>
+                </svg>`
+            },
+            {
+                id: 'pyramids',
+                name: 'Pyramids of Giza',
+                location: 'Giza, Egypt',
+                era: 'c. 2560 BC • Ancient Wonder',
+                fact: 'The Great Pyramid of Khufu consists of roughly 2.3 million stone blocks and remained the tallest man-made structure on Earth for over 3,800 years.',
+                svg: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="skyGiza" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#38BDF8"/><stop offset="100%" stop-color="#FDE68A"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="120" height="120" rx="12" fill="url(#skyGiza)"/>
+                    <circle cx="92" cy="26" r="11" fill="#FBBF24"/>
+                    <!-- Secondary Pyramid -->
+                    <polygon points="48,88 82,36 112,88" fill="#D97706" stroke="#78350F" stroke-width="1.6" stroke-linejoin="round"/>
+                    <polygon points="82,36 112,88 94,88" fill="#B45309"/>
+                    <!-- Great Pyramid Foreground -->
+                    <polygon points="10,92 48,28 86,92" fill="#F59E0B" stroke="#78350F" stroke-width="1.8" stroke-linejoin="round"/>
+                    <polygon points="48,28 86,92 64,92" fill="#D97706"/>
+                    <!-- Limestone Capstones -->
+                    <polygon points="42,38 48,28 54,38" fill="#FEF3C7"/>
+                    <!-- Desert Dunes -->
+                    <path d="M0 90 Q35 82 70 90 T120 88 L120 120 L0 120 Z" fill="#FCD34D"/>
+                    <path d="M0 100 Q50 92 120 102 L120 120 L0 120 Z" fill="#F59E0B"/>
+                </svg>`
+            },
+            {
+                id: 'burj',
+                name: 'Burj Khalifa',
+                location: 'Dubai, UAE',
+                era: '2010 • Neo-Futurist Skyscraper',
+                fact: 'Standing at 828 meters (2,717 feet), its Y-shaped footprint was inspired by the desert spider lily and reduces wind vortex forces on the spire.',
+                svg: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="skyBurj" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#1E3A8A"/><stop offset="100%" stop-color="#60A5FA"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="120" height="120" rx="12" fill="url(#skyBurj)"/>
+                    <!-- Stars / Twilight Accent -->
+                    <circle cx="24" cy="22" r="1.5" fill="#FEF08A"/>
+                    <circle cx="96" cy="30" r="1.5" fill="#FEF08A"/>
+                    <!-- Stepped Buttressed Core -->
+                    <rect x="44" y="84" width="32" height="24" fill="#93C5FD" stroke="#1E40AF" stroke-width="1.5"/>
+                    <rect x="48" y="64" width="24" height="20" fill="#BFDBFE" stroke="#1E40AF" stroke-width="1.5"/>
+                    <rect x="52" y="44" width="16" height="20" fill="#DBEAFE" stroke="#1E40AF" stroke-width="1.5"/>
+                    <rect x="55" y="26" width="10" height="18" fill="#EFF6FF" stroke="#1E40AF" stroke-width="1.5"/>
+                    <rect x="58" y="14" width="4" height="12" fill="#FFFFFF" stroke="#1E40AF" stroke-width="1.2"/>
+                    <line x1="60" y1="5" x2="60" y2="14" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Glass Mullion Vertical Lines -->
+                    <line x1="60" y1="14" x2="60" y2="108" stroke="#2563EB" stroke-width="1.3"/>
+                    <line x1="53" y1="44" x2="53" y2="108" stroke="#3B82F6" stroke-width="1"/>
+                    <line x1="67" y1="44" x2="67" y2="108" stroke="#3B82F6" stroke-width="1"/>
+                    <!-- Ground Plaza -->
+                    <rect x="0" y="106" width="120" height="14" fill="#0F172A"/>
+                </svg>`
+            },
+            {
+                id: 'stbasil',
+                name: "St. Basil's Cathedral",
+                location: 'Moscow, Russia',
+                era: '1561 • Russian Tent-Roof',
+                fact: 'Commissioned by Ivan the Terrible, its cluster of vibrant, candy-striped onion domes was designed to resemble the flames of a bonfire rising into the sky.',
+                svg: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                    <rect width="120" height="120" rx="12" fill="#E0F2FE"/>
+                    <!-- Central Tent Spire -->
+                    <polygon points="50,56 60,16 70,56" fill="#DC2626" stroke="#7F1D1D" stroke-width="1.5"/>
+                    <circle cx="60" cy="13" r="3" fill="#FACC15"/>
+                    <!-- Left Blue & Gold Onion Dome -->
+                    <path d="M24 62 C18 50 28 42 32 36 C36 42 46 50 40 62 Z" fill="#2563EB" stroke="#1E3A8A" stroke-width="1.5"/>
+                    <path d="M27 60 Q32 48 37 60" stroke="#FACC15" stroke-width="2" fill="none"/>
+                    <!-- Right Green & Yellow Onion Dome -->
+                    <path d="M80 62 C74 50 84 42 88 36 C92 42 102 50 96 62 Z" fill="#16A34A" stroke="#14532D" stroke-width="1.5"/>
+                    <path d="M83 60 Q88 48 93 60" stroke="#FDE047" stroke-width="2" fill="none"/>
+                    <!-- Foreground Red/White Striped Dome -->
+                    <path d="M48 72 C42 58 54 48 60 42 C66 48 78 58 72 72 Z" fill="#EF4444" stroke="#7F1D1D" stroke-width="1.5"/>
+                    <path d="M53 70 Q60 54 67 70" stroke="#FFFFFF" stroke-width="2.5" fill="none"/>
+                    <!-- Brick Cathedral Base -->
+                    <rect x="22" y="62" width="76" height="36" rx="2" fill="#B91C1C" stroke="#7F1D1D" stroke-width="1.6"/>
+                    <rect x="46" y="72" width="28" height="26" fill="#F8FAFC" stroke="#7F1D1D" stroke-width="1.4"/>
+                    <path d="M55 98 V84 A5 5 0 0 1 65 84 V98 Z" fill="#1E293B"/>
+                    <rect x="0" y="98" width="120" height="22" fill="#64748B"/>
+                </svg>`
+            },
+            {
+                id: 'himeji',
+                name: 'Himeji Castle',
+                location: 'Himeji, Japan',
+                era: '1609 • Feudal Japanese',
+                fact: 'Known as the "White Heron Castle" for its brilliant white plaster walls, it survived WWII bombings and the 1995 Kobe earthquake intact.',
+                svg: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                    <rect width="120" height="120" rx="12" fill="#FCE7F3"/>
+                    <!-- Curved Stone Rampart Wall -->
+                    <path d="M18 102 L28 74 L92 74 L102 102 Z" fill="#78716C" stroke="#44403C" stroke-width="1.8"/>
+                    <!-- Tier 1 Keep -->
+                    <rect x="32" y="58" width="56" height="16" fill="#FFFFFF" stroke="#334155" stroke-width="1.5"/>
+                    <path d="M22 60 Q60 52 98 60 L92 52 Q60 46 28 52 Z" fill="#1E293B"/>
+                    <!-- Tier 2 Keep -->
+                    <rect x="40" y="40" width="40" height="14" fill="#FFFFFF" stroke="#334155" stroke-width="1.5"/>
+                    <path d="M32 42 Q60 35 88 42 L82 34 Q60 29 38 34 Z" fill="#1E293B"/>
+                    <!-- Top Tenshu Roof -->
+                    <rect x="48" y="24" width="24" height="11" fill="#FFFFFF" stroke="#334155" stroke-width="1.5"/>
+                    <path d="M40 25 Q60 18 80 25 L74 17 Q60 13 46 17 Z" fill="#1E293B"/>
+                    <!-- Shachihoko Roof Finials -->
+                    <path d="M46 17 L44 12 M74 17 L76 12" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Cherry Blossom Accent -->
+                    <circle cx="18" cy="88" r="11" fill="#F472B6"/>
+                    <circle cx="102" cy="90" r="10" fill="#F9A8D4"/>
+                    <rect x="0" y="102" width="120" height="18" fill="#4D7C0F"/>
+                </svg>`
+            },
+            {
+                id: 'chichen',
+                name: 'Chichén Itzá',
+                location: 'Yucatán, Mexico',
+                era: 'c. 900 AD • Mayan Step Pyramid',
+                fact: 'During the spring and autumn equinoxes, afternoon sunlight casts a series of triangular shadows down the balustrade that look like a descending feathered serpent.',
+                svg: `<svg viewBox="0 0 120 120" class="w-full h-full">
+                    <rect width="120" height="120" rx="12" fill="#FEF3C7"/>
+                    <circle cx="26" cy="24" r="9" fill="#F59E0B"/>
+                    <!-- Stepped Pyramid Tiers -->
+                    <rect x="14" y="84" width="92" height="10" fill="#D6D3D1" stroke="#57534E" stroke-width="1.5"/>
+                    <rect x="21" y="74" width="78" height="10" fill="#E7E5E4" stroke="#57534E" stroke-width="1.5"/>
+                    <rect x="28" y="64" width="64" height="10" fill="#D6D3D1" stroke="#57534E" stroke-width="1.5"/>
+                    <rect x="35" y="54" width="50" height="10" fill="#E7E5E4" stroke="#57534E" stroke-width="1.5"/>
+                    <rect x="42" y="44" width="36" height="10" fill="#D6D3D1" stroke="#57534E" stroke-width="1.5"/>
+                    <!-- Summit Temple -->
+                    <rect x="48" y="30" width="24" height="14" fill="#E7E5E4" stroke="#57534E" stroke-width="1.6"/>
+                    <rect x="56" y="35" width="8" height="9" fill="#292524"/>
+                    <!-- Central Grand Staircase -->
+                    <polygon points="52,44 68,44 76,94 44,94" fill="#FAFAF9" stroke="#57534E" stroke-width="1.5"/>
+                    <path d="M51 54 H69 M49 64 H71 M47 74 H73 M45 84 H75" stroke="#78716C" stroke-width="1.4"/>
+                    <!-- Jungle Lawn -->
+                    <rect x="0" y="94" width="120" height="26" fill="#65A30D"/>
+                </svg>`
+            }
+        ];
+
+        // =========================================================================
+        // 2. GAME STATE & CONFIGURATION
+        // =========================================================================
+        const DIFFICULTY_CONFIG = {
+            easy: {
+                pairs: 6,
+                label: 'Easy',
+                gridClasses: 'grid-cols-3 sm:grid-cols-4 max-w-3xl mx-auto',
+                cardAspect: 'aspect-[4/4.3] sm:aspect-[4/4.2]',
+                parMoves: 9
+            },
+            medium: {
+                pairs: 8,
+                label: 'Medium',
+                gridClasses: 'grid-cols-4 max-w-4xl mx-auto',
+                cardAspect: 'aspect-[4/4.3] sm:aspect-[4/4.1]',
+                parMoves: 13
+            },
+            hard: {
+                pairs: 12,
+                label: 'Hard',
+                gridClasses: 'grid-cols-4 sm:grid-cols-6 max-w-6xl mx-auto',
+                cardAspect: 'aspect-[4/4.4] sm:aspect-[4/4.3]',
+                parMoves: 20
+            }
+        };
+
+        let currentDifficulty = 'easy';
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let moves = 0;
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let gameStarted = false;
+        let isProcessing = false;
+        let isMuted = false;
+        let audioReady = false;
+
+        // =========================================================================
+        // 3. PROCEDURAL AUDIO ENGINE (TONE.JS)
+        // =========================================================================
+        let synth, polySynth;
+
+        async function ensureAudio() {
+            if (isMuted) return;
+            try {
+                if (Tone.context.state !== 'running') {
+                    await Tone.start();
+                }
+                if (!audioReady) {
+                    synth = new Tone.Synth({
+                        oscillator: { type: 'triangle' },
+                        envelope: { attack: 0.01, decay: 0.12, sustain: 0.05, release: 0.2 }
+                    }).toDestination();
+                    synth.volume.value = -10;
+
+                    polySynth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: 'sine' },
+                        envelope: { attack: 0.02, decay: 0.25, sustain: 0.1, release: 0.5 }
+                    }).toDestination();
+                    polySynth.volume.value = -8;
+                    audioReady = true;
+                }
+            } catch (e) {
+                console.warn('Audio initialization deferred:', e);
+            }
+        }
+
+        function playFlipSound() {
+            if (isMuted) return;
+            ensureAudio().then(() => {
+                if (synth) synth.triggerAttackRelease('G4', '32n');
+            });
+        }
+
+        function playMatchSound() {
+            if (isMuted) return;
+            ensureAudio().then(() => {
+                if (polySynth) {
+                    const now = Tone.now();
+                    polySynth.triggerAttackRelease('C5', '16n', now);
+                    polySynth.triggerAttackRelease('E5', '16n', now + 0.08);
+                    polySynth.triggerAttackRelease('G5', '8n', now + 0.16);
+                }
+            });
+        }
+
+        function playMismatchSound() {
+            if (isMuted) return;
+            ensureAudio().then(() => {
+                if (synth) {
+                    const now = Tone.now();
+                    synth.triggerAttackRelease('D3', '16n', now);
+                    synth.triggerAttackRelease('C3', '16n', now + 0.1);
+                }
+            });
+        }
+
+        function playVictorySound() {
+            if (isMuted) return;
+            ensureAudio().then(() => {
+                if (polySynth) {
+                    const now = Tone.now();
+                    polySynth.triggerAttackRelease(['C4', 'E4', 'G4'], '8n', now);
+                    polySynth.triggerAttackRelease(['D4', 'F4', 'A4'], '8n', now + 0.16);
+                    polySynth.triggerAttackRelease(['E4', 'G4', 'B4'], '8n', now + 0.32);
+                    polySynth.triggerAttackRelease(['C5', 'E5', 'G5', 'C6'], '2n', now + 0.48);
+                }
+            });
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            const icon = document.getElementById('sound-icon');
+            icon.setAttribute('data-lucide', isMuted ? 'volume-x' : 'volume-2');
+            lucide.createIcons();
+            if (!isMuted) ensureAudio();
+        }
+
+        // =========================================================================
+        // 4. BEST SCORE PERSISTENCE
+        // =========================================================================
+        function getBestRecordKey(diff) {
+            return `arch_memory_best_${diff}`;
+        }
+
+        function loadBestRecord() {
+            try {
+                const raw = localStorage.getItem(getBestRecordKey(currentDifficulty));
+                const el = document.getElementById('stat-best');
+                if (!raw) {
+                    el.textContent = '—';
+                    return null;
+                }
+                const data = JSON.parse(raw);
+                el.textContent = `${data.moves}m • ${formatTime(data.time)}`;
+                return data;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function saveBestRecord(newMoves, newTime) {
+            try {
+                const existing = loadBestRecord();
+                const isBetter = !existing ||
+                    newMoves < existing.moves ||
+                    (newMoves === existing.moves && newTime < existing.time);
+
+                if (isBetter) {
+                    localStorage.setItem(
+                        getBestRecordKey(currentDifficulty),
+                        JSON.stringify({ moves: newMoves, time: newTime })
+                    );
+                    loadBestRecord();
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // =========================================================================
+        // 5. CORE GAME ENGINE
+        // =========================================================================
+        function setDifficulty(level) {
+            if (!DIFFICULTY_CONFIG[level]) return;
+            currentDifficulty = level;
+            updateDifficultyUI();
+            initGame();
+        }
+
+        function updateDifficultyUI() {
+            ['easy', 'medium', 'hard'].forEach(lvl => {
+                const btn = document.getElementById(`diff-${lvl}`);
+                if (lvl === currentDifficulty) {
+                    btn.className = 'diff-btn flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-[#C59B27] text-[#1B263B] shadow-sm transition-all';
+                } else {
+                    btn.className = 'diff-btn flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-[#E8D59E]/80 hover:text-white transition-all';
+                }
+            });
+        }
+
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60).toString().padStart(2, '0');
+            const s = (sec % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function startTimer() {
+            if (gameStarted) return;
+            gameStarted = true;
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                document.getElementById('stat-timer').textContent = formatTime(timerSeconds);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function resetTriviaBanner() {
+            const tag = document.getElementById('trivia-tag');
+            const title = document.getElementById('trivia-title');
+            const text = document.getElementById('trivia-text');
+            tag.textContent = "Curator's Field Guide";
+            tag.className = "text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-[#E8D59E]/40 text-[#7C5C0E]";
+            title.textContent = "Match each landmark illustration with its architectural title card";
+            text.textContent = "Flip any two cards to begin. Every successful match unlocks fascinating architectural and historical trivia!";
+        }
+
+        function revealLandmarkTrivia(landmark) {
+            const panel = document.getElementById('trivia-panel');
+            const tag = document.getElementById('trivia-tag');
+            const title = document.getElementById('trivia-title');
+            const text = document.getElementById('trivia-text');
+
+            panel.classList.remove('trivia-enter');
+            void panel.offsetWidth; // trigger reflow
+            panel.classList.add('trivia-enter');
+
+            tag.textContent = `Discovered • ${landmark.era}`;
+            tag.className = "text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-[#D1FAE5] text-[#065F46]";
+            title.textContent = `${landmark.name} — ${landmark.location}`;
+            text.textContent = landmark.fact;
+        }
+
+        function initGame() {
+            stopTimer();
+            flippedCards = [];
+            matchedPairs = 0;
+            moves = 0;
+            timerSeconds = 0;
+            gameStarted = false;
+            isProcessing = false;
+
+            const config = DIFFICULTY_CONFIG[currentDifficulty];
+            document.getElementById('stat-pairs').textContent = `0 / ${config.pairs}`;
+            document.getElementById('stat-moves').textContent = '0';
+            document.getElementById('stat-timer').textContent = '00:00';
+            loadBestRecord();
+            resetTriviaBanner();
+
+            // Select random subset of landmarks for the chosen difficulty
+            const selectedLandmarks = shuffleArray(LANDMARKS).slice(0, config.pairs);
+
+            // Build paired deck: 1 Illustration Card + 1 Name/Location Card per landmark
+            let deck = [];
+            selectedLandmarks.forEach(item => {
+                deck.push({
+                    pairId: item.id,
+                    type: 'illustration',
+                    landmark: item
+                });
+                deck.push({
+                    pairId: item.id,
+                    type: 'label',
+                    landmark: item
+                });
+            });
+
+            deck = shuffleArray(deck);
+            renderBoard(deck, config);
+        }
+
+        function renderBoard(deck, config) {
+            const grid = document.getElementById('card-grid');
+            grid.className = `w-full grid gap-2.5 sm:gap-3.5 md:gap-4 ${config.gridClasses}`;
+            grid.innerHTML = '';
+
+            deck.forEach((cardData, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = `perspective-container ${config.cardAspect} w-full`;
+
+                const cardInner = document.createElement('div');
+                cardInner.className = 'card-inner';
+                cardInner.dataset.pairId = cardData.pairId;
+                cardInner.dataset.index = index;
+
+                // Card Back (Blueprint Compass Crest)
+                const cardBack = document.createElement('div');
+                cardBack.className = 'card-face card-back';
+                cardBack.innerHTML = `
+                    <div class="card-back-pattern">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-[#C59B27]/60 bg-[#1B263B]/90 flex items-center justify-center shadow-md">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#E8D59E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                <circle cx="12" cy="12" r="9"/>
+                                <polygon points="12,5 14.5,11 12,13 9.5,11" fill="currentColor"/>
+                                <polygon points="12,19 14.5,13 12,11 9.5,13" opacity="0.45" fill="currentColor"/>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+
+                // Card Front (Either Custom SVG Artwork OR Architectural Nameplate)
+                const cardFront = document.createElement('div');
+                cardFront.className = 'card-face card-front p-2 sm:p-2.5 flex flex-col justify-between';
+
+                if (cardData.type === 'illustration') {
+                    cardFront.innerHTML = `
+                        <div class="w-full h-full rounded-xl overflow-hidden border border-[#DFD3BC] bg-[#F6F1E7] relative flex items-center justify-center">
+                            ${cardData.landmark.svg}
+                            <span class="absolute top-1.5 right-1.5 bg-[#1B263B]/80 text-[#E8D59E] text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded">
+                                Visual
+                            </span>
+                        </div>
+                    `;
+                } else {
+                    cardFront.innerHTML = `
+                        <div class="w-full h-full rounded-xl border border-[#DFD3BC] bg-gradient-to-b from-[#FFFDF9] to-[#F6F1E7] p-2 sm:p-3 flex flex-col items-center justify-center text-center relative">
+                            <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-[#B85D3B] mb-1">
+                                Landmark
+                            </span>
+                            <h3 class="font-serif-title font-bold text-xs sm:text-sm md:text-base text-[#1B263B] leading-snug line-clamp-2">
+                                ${cardData.landmark.name}
+                            </h3>
+                            <div class="w-8 h-0.5 bg-[#C59B27] my-1.5 sm:my-2 rounded-full"></div>
+                            <p class="text-[10px] sm:text-xs font-semibold text-[#4A6B69] flex items-center justify-center gap-1 leading-tight">
+                                <span>${cardData.landmark.location}</span>
+                            </p>
+                        </div>
+                    `;
+                }
+
+                cardInner.appendChild(cardBack);
+                cardInner.appendChild(cardFront);
+                cardInner.addEventListener('click', () => handleCardFlip(cardInner, cardData.landmark));
+                wrapper.appendChild(cardInner);
+                grid.appendChild(wrapper);
+            });
+        }
+
+        function handleCardFlip(cardEl, landmark) {
+            if (isProcessing) return;
+            if (cardEl.classList.contains('is-flipped') || cardEl.classList.contains('is-matched')) return;
+
+            startTimer();
+            playFlipSound();
+            cardEl.classList.add('is-flipped');
+            flippedCards.push({ element: cardEl, landmark });
+
+            if (flippedCards.length === 2) {
+                moves++;
+                document.getElementById('stat-moves').textContent = moves;
+                checkForMatch();
+            }
+        }
+
+        function checkForMatch() {
+            isProcessing = true;
+            const [first, second] = flippedCards;
+            const isMatch = first.element.dataset.pairId === second.element.dataset.pairId;
+
+            if (isMatch) {
+                setTimeout(() => {
+                    playMatchSound();
+                    first.element.classList.add('is-matched', 'match-animate');
+                    second.element.classList.add('is-matched', 'match-animate');
+
+                    matchedPairs++;
+                    const totalPairs = DIFFICULTY_CONFIG[currentDifficulty].pairs;
+                    document.getElementById('stat-pairs').textContent = `${matchedPairs} / ${totalPairs}`;
+
+                    revealLandmarkTrivia(first.landmark);
+
+                    flippedCards = [];
+                    isProcessing = false;
+
+                    if (matchedPairs === totalPairs) {
+                        handleVictory();
+                    }
+                }, 320);
+            } else {
+                setTimeout(() => {
+                    playMismatchSound();
+                    first.element.classList.add('mismatch-animate');
+                    second.element.classList.add('mismatch-animate');
+                }, 480);
+
+                setTimeout(() => {
+                    first.element.classList.remove('is-flipped', 'mismatch-animate');
+                    second.element.classList.remove('is-flipped', 'mismatch-animate');
+                    flippedCards = [];
+                    isProcessing = false;
+                }, 980);
+            }
+        }
+
+        // =========================================================================
+        // 6. VICTORY & CELEBRATION
+        // =========================================================================
+        function handleVictory() {
+            stopTimer();
+            playVictorySound();
+            launchConfetti();
+
+            const config = DIFFICULTY_CONFIG[currentDifficulty];
+            const isNewRecord = saveBestRecord(moves, timerSeconds);
+
+            // Calculate Star Rating
+            let stars = '★★★';
+            if (moves > config.parMoves * 1.8) stars = '★☆☆';
+            else if (moves > config.parMoves * 1.3) stars = '★★☆';
+
+            document.getElementById('vic-moves').textContent = moves;
+            document.getElementById('vic-time').textContent = formatTime(timerSeconds);
+            document.getElementById('vic-stars').textContent = stars;
+
+            const recordBadge = document.getElementById('victory-new-record');
+            if (isNewRecord) {
+                recordBadge.classList.remove('hidden');
+            } else {
+                recordBadge.classList.add('hidden');
+            }
+
+            const nextBtn = document.getElementById('next-diff-btn');
+            if (currentDifficulty === 'hard') {
+                nextBtn.classList.add('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+            }
+
+            setTimeout(() => {
+                const modal = document.getElementById('victory-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }, 550);
+        }
+
+        function closeModalAndRestart() {
+            const modal = document.getElementById('victory-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            initGame();
+        }
+
+        function advanceDifficulty() {
+            const modal = document.getElementById('victory-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+
+            if (currentDifficulty === 'easy') setDifficulty('medium');
+            else if (currentDifficulty === 'medium') setDifficulty('hard');
+            else initGame();
+        }
+
+        function launchConfetti() {
+            const colors = ['#C59B27', '#1B263B', '#B85D3B', '#2E7D5B', '#E8D59E'];
+            for (let i = 0; i < 65; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti';
+                piece.style.left = Math.random() * 100 + 'vw';
+                piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                piece.style.width = (Math.random() * 8 + 6) + 'px';
+                piece.style.height = (Math.random() * 8 + 6) + 'px';
+                document.body.appendChild(piece);
+
+                const duration = Math.random() * 1800 + 1600;
+                const drift = (Math.random() - 0.5) * 180;
+
+                piece.animate([
+                    { transform: 'translate3d(0, 0, 0) rotate(0deg)', opacity: 1 },
+                    { transform: `translate3d(${drift}px, 102vh, 0) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+                ], {
+                    duration,
+                    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                }).onfinish = () => piece.remove();
+            }
+        }
+
+        // =========================================================================
+        // 7. INITIALIZE ON LOAD
+        // =========================================================================
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            updateDifficultyUI();
+            initGame();
+        });
+    </script>
+</body>
+</html>
